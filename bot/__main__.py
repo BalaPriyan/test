@@ -296,7 +296,7 @@ async def search_images():
         except Exception as e:
             LOGGER.error(f"An error occurred: {e}")
 
-@new_thread
+
 async def bot_help(client, message):
     buttons = ButtonMaker()
     user_id = message.from_user.id
