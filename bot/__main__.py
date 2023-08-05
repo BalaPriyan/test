@@ -1,39 +1,35 @@
-from asyncio import create_subprocess_exec, gather
-from os import execl as osexecl
-from signal import SIGINT, signal
-from sys import executable
 from time import time, monotonic
+from datetime import datetime
+from sys import executable
+from os import execl as osexecl
+from asyncio import create_subprocess_exec, gather
 from uuid import uuid4
+from base64 import b64decode
 
+from requests import get as rget
+from pytz import timezone
+from bs4 import BeautifulSoup
+from signal import signal, SIGINT
+from aiofiles.os import path as aiopath, remove as aioremove
 from aiofiles import open as aiopen
-from aiofiles.os import path as aiopath
-from aiofiles.os import remove as aioremove
-from psutil import (boot_time, cpu_count, cpu_percent, cpu_freq, disk_usage,
-                    net_io_counters, swap_memory, virtual_memory)
-from pyrogram.filters import command, regex
-from pyrogram.handlers import CallbackQueryHandler, MessageHandler
+from pyrogram.handlers import MessageHandler, CallbackQueryHandler
+from pyrogram.filters import command, private, regex
+from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
-from bot import (DATABASE_URL, INCOMPLETE_TASK_NOTIFIER, LOGGER,
-                 STOP_DUPLICATE_TASKS, Interval, QbInterval, bot, botStartTime,
-                 config_dict, scheduler, user_data)
-from bot.helper.listeners.aria2_listener import start_aria2_listener
-
-from .helper.ext_utils.bot_utils import (cmd_exec, get_readable_file_size,
-                                         get_readable_time, new_thread, set_commands,
-                                         sync_to_async, get_progress_bar_string)
+from bot import bot, bot_name, config_dict, user_data, botStartTime, LOGGER, Interval, DATABASE_URL, QbInterval, INCOMPLETE_TASK_NOTIFIER, scheduler
+from bot.version import get_version
+from .helper.ext_utils.fs_utils import start_cleanup, clean_all, exit_clean_up
+from .helper.ext_utils.bot_utils import get_readable_time, cmd_exec, sync_to_async, new_task, set_commands, update_user_ldata, get_stats
 from .helper.ext_utils.db_handler import DbManger
-from .helper.ext_utils.fs_utils import clean_all, exit_clean_up, start_cleanup
-from .helper.telegram_helper.button_build import ButtonMaker
 from .helper.telegram_helper.bot_commands import BotCommands
+from .helper.telegram_helper.message_utils import sendMessage, editMessage, editReplyMarkup, sendFile, deleteMessage, delete_all_messages
 from .helper.telegram_helper.filters import CustomFilters
+from .helper.telegram_helper.button_build import ButtonMaker
+from .helper.listeners.aria2_listener import start_aria2_listener
 from .helper.themes import BotTheme
-from .helper.telegram_helper.message_utils import (editMessage, sendFile,
-                                                   sendMessage, auto_delete_message)
-from .modules import (anonymous, authorize, bot_settings, cancel_mirror,
-                      category_select, clone, eval, gd_count, gd_delete,
-                      gd_list, leech_del, mirror_leech, rmdb, rss,
-                      shell, status, torrent_search,
-                      torrent_select, users_settings, ytdlp, broadcast)
+from .modules import authorize, clone, gd_count, gd_delete, gd_list, cancel_mirror, mirror_leech, status, torrent_search, torrent_select, ytdlp, \
+                     rss, shell, eval, users_settings, bot_settings, speedtest, save_msg, images, imdb, anilist, mediainfo, mydramalist, gen_pyro_sess, \
+                     gd_clean, broadcast, category_select
 
 
 async def stats(_, message, edit_mode=False):
@@ -344,10 +340,6 @@ async def restart_notification():
                             msg = ''
                 if msg:
                     await send_incompelete_task_message(cid, msg)
-
-        if STOP_DUPLICATE_TASKS:
-            await DbManger().clear_download_links()
-
 
     if await aiopath.isfile(".restartmsg"):
         try:
