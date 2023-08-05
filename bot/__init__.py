@@ -713,7 +713,7 @@ if ospath.exists('shorteners.txt'):
 PORT = environ.get('PORT')
 Popen(f"gunicorn web.wserver:app --bind 0.0.0.0:{PORT} --worker-class gevent", shell=True)
 
-info("Starting qBittorrent-Nox")
+log_info("Starting qBittorrent-Nox")
 zrun(["openstack", "-d", f"--profile={getcwd()}"])
 if not ospath.exists('.netrc'):
     with open('.netrc', 'w'):
@@ -748,7 +748,7 @@ def get_client():
 
 def aria2c_init():
     try:
-        info("Starting Aria2c")
+        log_info("Starting Aria2c")
         link = "https://linuxmint.com/torrents/lmde-5-cinnamon-64bit.iso.torrent"
         dl = aria2.add_uris([link], {'dir': DOWNLOAD_DIR.rstrip("/")})
         sleep(3)
@@ -761,7 +761,7 @@ def aria2c_init():
         if dl.remove(True, True):
             info('Aria2c started!')
     except Exception as e:
-        error(f"Aria2c startup error: {e}")
+        log_error(f"Aria2c startup error: {e}")
 
 
 Thread(target=aria2c_init).start()
@@ -793,7 +793,7 @@ else:
     qb_client.app_set_preferences(qb_opt)
 
 
-info("Creating client from BOT_TOKEN")
+log_info("Creating client from BOT_TOKEN")
 bot = tgClient('bot', TELEGRAM_API, TELEGRAM_HASH, bot_token=BOT_TOKEN,
                parse_mode=enums.ParseMode.HTML).start()
 bot_loop = bot.loop
