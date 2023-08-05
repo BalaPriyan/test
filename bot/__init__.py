@@ -733,7 +733,7 @@ if ospath.exists('accounts.zip'):
         zrun(["rm", "-rf", "accounts"])
     zrun(["7z", "x", "-o.", "-bd", "-aoa", "accounts.zip", "accounts/*.json"])
     zrun(["chmod", "-R", "777", "accounts"])
-    remove('accounts.zip')
+    osremove('accounts.zip')
 if not ospath.exists('accounts'):
     config_dict['USE_SERVICE_ACCOUNTS'] = False
 alive = Popen(["python3", "alive.py"])
@@ -759,7 +759,7 @@ def aria2c_init():
                 dl = dl.live
             sleep(2)
         if dl.remove(True, True):
-            info('Aria2c started!')
+            log_info('Aria2c started!')
     except Exception as e:
         log_error(f"Aria2c startup error: {e}")
 
