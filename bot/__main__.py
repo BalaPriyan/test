@@ -258,7 +258,7 @@ async def restart(_, message):
         await f.write(f"{restart_message.chat.id}\n{restart_message.id}\n")
     osexecl(executable, executable, "-m", "bot")
 
-@new_thread
+
 async def ping(_, message):
     start_time = monotonic()
     reply = await sendMessage(message, BotTheme('PING'))
