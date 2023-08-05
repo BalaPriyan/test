@@ -1,13 +1,10 @@
-from os import environ
-
+from aiofiles.os import path as aiopath, makedirs
 from aiofiles import open as aiopen
-from aiofiles.os import makedirs
-from aiofiles.os import path as aiopath
 from motor.motor_asyncio import AsyncIOMotorClient
 from pymongo.errors import PyMongoError
+from dotenv import dotenv_values
 
-from bot import (DATABASE_URL, LOGGER, aria2_options, bot_id, bot_loop,
-                 bot_name, config_dict, qbit_options, rss_dict, user_data)
+from bot import DATABASE_URL, user_data, rss_dict, LOGGER, bot_id, config_dict, aria2_options, qbit_options, bot_loop
 
 
 class DbManger:
@@ -20,7 +17,7 @@ class DbManger:
     def __connect(self):
         try:
             self.__conn = AsyncIOMotorClient(DATABASE_URL)
-            self.__db = self.__conn.z
+            self.__db = self.__conn.wzmlx # New Section for not conflicting with mltb section !!
         except PyMongoError as e:
             LOGGER.error(f"Error in DB connection: {e}")
             self.__err = True
@@ -44,7 +41,7 @@ class DbManger:
                 uid = row['_id']
                 del row['_id']
                 thumb_path = f'Thumbnails/{uid}.jpg'
-                rclone_path = f'zcl/{uid}.conf'
+                rclone_path = f'rclone/{uid}.conf'
                 if row.get('thumb'):
                     if not await aiopath.exists('Thumbnails'):
                         await makedirs('Thumbnails')
@@ -52,8 +49,8 @@ class DbManger:
                         await f.write(row['thumb'])
                     row['thumb'] = thumb_path
                 if row.get('rclone'):
-                    if not await aiopath.exists('zcl'):
-                        await makedirs('zcl')
+                    if not await aiopath.exists('rclone'):
+                        await makedirs('rclone')
                     async with aiopen(rclone_path, 'wb+') as f:
                         await f.write(row['rclone'])
                     row['rclone'] = rclone_path
@@ -61,7 +58,8 @@ class DbManger:
             LOGGER.info("Users data has been imported from Database")
         # Rss Data
         if await self.__db.rss[bot_id].find_one():
-            rows = self.__db.rss[bot_id].find({})  # return a dict ==> {_id, title: {link, last_feed, last_name, inf, exf, command, paused}
+            # return a dict ==> {_id, title: {link, last_feed, last_name, inf, exf, command, paused}
+            rows = self.__db.rss[bot_id].find({})
             async for row in rows:
                 user_id = row['_id']
                 del row['_id']
@@ -69,26 +67,18 @@ class DbManger:
             LOGGER.info("Rss data has been imported from Database.")
         self.__conn.close
 
+    async def update_deploy_config(self):
+        if self.__err:
+            return
+        current_config = dict(dotenv_values('config.env'))
+        await self.__db.settings.deployConfig.replace_one({'_id': bot_id}, current_config, upsert=True)
+        self.__conn.close
+
     async def update_config(self, dict_):
         if self.__err:
             return
         await self.__db.settings.config.update_one({'_id': bot_id}, {'$set': dict_}, upsert=True)
         self.__conn.close
-
-    async def load_configs(self):
-        if self.__err:
-            return
-        if db_dict := await self.__db.settings.config.find_one({'_id': bot_id}):
-            del db_dict['_id']
-            for key, value in db_dict.items():
-                environ[key] = str(value)
-        if pf_dict := await self.__db.settings.files.find_one({'_id': bot_id}):
-            del pf_dict['_id']
-            for key, value in pf_dict.items():
-                if value:
-                    file_ = key.replace('__', '.')
-                    with open(file_, 'wb+') as f:
-                        f.write(value)
 
     async def update_aria2(self, key, value):
         if self.__err:
@@ -112,7 +102,10 @@ class DbManger:
             pf_bin = ''
         path = path.replace('.', '__')
         await self.__db.settings.files.update_one({'_id': bot_id}, {'$set': {path: pf_bin}}, upsert=True)
-        self.__conn.close
+        if path == 'config.env':
+            await self.update_deploy_config()
+        else:
+            self.__conn.close
 
     async def update_user_data(self, user_id):
         if self.__err:
@@ -122,10 +115,6 @@ class DbManger:
             del data['thumb']
         if data.get('rclone'):
             del data['rclone']
-        if data.get('token'):
-            del data['token']
-        if data.get('time'):
-            del data['time']
         await self.__db.users[bot_id].replace_one({'_id': user_id}, data, upsert=True)
         self.__conn.close
 
@@ -145,7 +134,7 @@ class DbManger:
             return
         return [doc['_id'] async for doc in self.__db.pm_users[bot_id].find({})]
         self.__conn.close
-
+        
     async def update_pm_users(self, user_id):
         if self.__err:
             return
@@ -153,7 +142,13 @@ class DbManger:
             await self.__db.pm_users[bot_id].insert_one({'_id': user_id})
             LOGGER.info(f'New PM User Added : {user_id}')
         self.__conn.close
-
+        
+    async def rm_pm_user(self, user_id):
+        if self.__err:
+            return
+        await self.__db.pm_users[bot_id].delete_one({'_id': user_id})
+        self.__conn.close
+        
     async def rss_update_all(self):
         if self.__err:
             return
@@ -211,33 +206,6 @@ class DbManger:
         await self.__db[name][bot_id].drop()
         self.__conn.close
 
-    async def add_download_url(self, url: str, tag: str):
-        if self.__err:
-            return
-        download = {'_id': url, 'tag': tag, 'botname': bot_name}
-        await self.__db.download_links.update_one({'_id': url}, {'$set': download}, upsert=True)
-        self.__conn.close
-
-    async def check_download(self, url:str):
-        if self.__err:
-            return
-        exist = await self.__db.download_links.find_one({'_id': url})
-        self.__conn.close
-        return exist
-
-    async def clear_download_links(self, botName=None):
-        if self.__err:
-            return
-        if not botName:
-            botName = bot_name
-        await self.__db.download_links.delete_many({'botname': botName})
-        self.__conn.close
-
-    async def remove_download(self, url: str):
-        if self.__err:
-            return
-        await self.__db.download_links.delete_one({'_id': url})
-        self.__conn.close
 
 if DATABASE_URL:
     bot_loop.run_until_complete(DbManger().db_load())
