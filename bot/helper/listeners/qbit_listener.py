@@ -61,7 +61,6 @@ async def __stop_duplicate(tor):
     msg, button = await stop_duplicate_check(name, listener)
     if msg:
         __onDownloadError(msg, tor, button)
-        await delete_links(listener.message)
 
 
 @new_task
@@ -72,7 +71,7 @@ async def __size_checked(tor):
         size = tor.size
         if limit_exceeded := await limit_checker(size, listener, True):
             await __onDownloadError(limit_exceeded, tor)
-            await delete_links(listener.message)
+
 
 
 @new_task
@@ -111,6 +110,7 @@ async def __onDownloadComplete(tor):
         await sync_to_async(client.auth_log_out)
     else:
         await __remove_torrent(client, ext_hash, tag)
+
 
 
 async def __qb_listener():
