@@ -24,6 +24,6 @@ def BotTheme(var_name, **format_vars):
         text = getattr(rantheme.SKULL(), var_name, None)
         
     if text is None:
-        text = getattr(skull.SKULL(), var_name)
+        text = getattr(skull_base.SKULL(), var_name)
 
     return text.format_map(format_vars)
