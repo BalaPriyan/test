@@ -652,6 +652,21 @@ def extra_btns(buttons):
     return buttons
 
 
+async def check_user_tasks(user_id, maxtask):
+    downloading_tasks   = await getAllDownload(MirrorStatus.STATUS_DOWNLOADING, user_id)
+    uploading_tasks     = await getAllDownload(MirrorStatus.STATUS_UPLOADING, user_id)
+    cloning_tasks       = await getAllDownload(MirrorStatus.STATUS_CLONING, user_id)
+    splitting_tasks     = await getAllDownload(MirrorStatus.STATUS_SPLITTING, user_id)
+    archiving_tasks     = await getAllDownload(MirrorStatus.STATUS_ARCHIVING, user_id)
+    extracting_tasks    = await getAllDownload(MirrorStatus.STATUS_EXTRACTING, user_id)
+    queuedl_tasks       = await getAllDownload(MirrorStatus.STATUS_QUEUEDL, user_id)
+    queueup_tasks       = await getAllDownload(MirrorStatus.STATUS_QUEUEUP, user_id)
+    total_tasks         = downloading_tasks + uploading_tasks + cloning_tasks + splitting_tasks + archiving_tasks + extracting_tasks + queuedl_tasks + queueup_tasks
+    return len(total_tasks) >= maxtask
+
+
+
+
 async def set_commands(client):
     if config_dict['SET_COMMANDS']:
         try:
