@@ -1,23 +1,20 @@
+from tzlocal import get_localzone
+from pytz import timezone
+from datetime import datetime
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from pyrogram import Client as tgClient, enums
+from pymongo import MongoClient
 from asyncio import Lock
-from collections import OrderedDict
-from faulthandler import enable as faulthandler_enable
-from logging import (INFO, FileHandler, StreamHandler, basicConfig,
-                     error, getLogger, info, warning)
-from os import environ, path as ospath, remove, getcwd
-from socket import setdefaulttimeout
-from subprocess import Popen, run as zrun, check_output
+from dotenv import load_dotenv, dotenv_values
 from threading import Thread
 from time import sleep, time
-
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from aria2p import API as ariaAPI
-from aria2p import Client as ariaClient
-from dotenv import load_dotenv
-from pymongo import MongoClient
-from pyrogram import Client as tgClient
-from pyrogram import enums
+from subprocess import Popen, run as zrun
+from os import remove as osremove, path as ospath, environ, getcwd
+from aria2p import API as ariaAPI, Client as ariaClient
 from qbittorrentapi import Client as qbClient
-from tzlocal import get_localzone
+from faulthandler import enable as faulthandler_enable
+from socket import setdefaulttimeout
+from logging import getLogger, Formatter, FileHandler, StreamHandler, INFO, basicConfig, error as log_error, info as log_info, warning as log_warning
 from uvloop import install
 
 faulthandler_enable()
