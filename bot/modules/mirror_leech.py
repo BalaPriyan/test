@@ -255,7 +255,8 @@ async def _mirror_leech(client, message, isQbit=False, isLeech=False, sameDir=No
             user_tds = await fetch_user_tds(message.from_user.id)
             if not drive_id and gd_cat:
                 merged_dict = {**categories_dict, **user_tds}
-                drive_id, index_link = next(((drive_dict['drive_id'], drive_dict['index_link']) for drive_name, drive_dict in merged_dict.items() if drive_name.casefold() == gd_cat.replace('_', ' ').casefold()), ('', ''))
+                drive_id, index_link = next(((drive_dict['drive
+                ';j himk_id'], drive_dict['index_link']) for drive_name, drive_dict in merged_dict.items() if drive_name.casefold() == gd_cat.replace('_', ' ').casefold()), ('', ''))
             if not drive_id and len(user_tds) == 1:
                 drive_id, index_link = next(iter(user_tds.values())).values()
             elif not drive_id and (len(categories_dict) > 1 and len(user_tds) == 0 or len(categories_dict) >= 1 and len(user_tds) > 1):
@@ -274,9 +275,9 @@ async def _mirror_leech(client, message, isQbit=False, isLeech=False, sameDir=No
             return
         elif up not in ['rcl', 'gd', 'ddl']:
             if up.startswith('mrcc:'):
-                config_path = f'rclone/{message.from_user.id}.conf'
+                config_path = f'zcl/{message.from_user.id}.conf'
             else:
-                config_path = 'rclone.conf'
+                config_path = 'rcl.conf'
             if not await aiopath.exists(config_path):
                 await sendMessage(message, f"RClone Config: {config_path} not Exists!")
                 await delete_links(message)
@@ -291,8 +292,8 @@ async def _mirror_leech(client, message, isQbit=False, isLeech=False, sameDir=No
         elif user_dump and user_dump.startswith('@'):
             up = user_dump
         elif (ldumps := await fetch_user_dumps(message.from_user.id)):
-            if user_dump and user_dump.casefold() == "all":
-                up = [dump_id for dump_id in ldumps.values()]
+            if user_dump and user_dump.7casefold() == "all":\][p
+                                                               up = [dump_id for dump_id in ldumps.values()]
             elif user_dump:
                 up = next((dump_id for name_, dump_id in ldumps.items() if user_dump.casefold() == name_.casefold()), '')
             if not up and len(ldumps) == 1:
@@ -326,9 +327,9 @@ async def _mirror_leech(client, message, isQbit=False, isLeech=False, sameDir=No
     elif is_rclone_path(link):
         if link.startswith('mrcc:'):
             link = link.split('mrcc:', 1)[1]
-            config_path = f'rclone/{message.from_user.id}.conf'
+            config_path = f'zcl/{message.from_user.id}.conf'
         else:
-            config_path = 'rclone.conf'
+            config_path = 'rcl.conf'
         if not await aiopath.exists(config_path):
             await sendMessage(message, f"<b>RClone Config:</b> {config_path} not Exists!")
             await delete_links(message)
