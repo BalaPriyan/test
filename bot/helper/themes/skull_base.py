@@ -9,7 +9,7 @@ class SKULL:
 <b>Type {help_command} to get a list of available commands</b>'''
     ST_BOTPM = '''<i>Now, This bot will send all your files and links here. Start Using ...</i>'''
     ST_UNAUTH = '''<i>You Are not authorized user! Deploy your own Mirror-Leech bot</i>'''
-    PIC = 'https://graph.org/file/d454b953103d42d759f8d.jpg'
+    PIC = 'https://graph.org/file/4e04d7306ebc06d5d12e5.jpg'
 
 
     # async def stats(client, message):
